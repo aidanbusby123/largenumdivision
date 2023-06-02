@@ -59,6 +59,7 @@ bignum l_div(bignum a, bignum b){
     int sz = (((a_sz > b_sz) ? a_sz : b_sz)+2)/sizeof(char); // standard array size
     int orig_sz = sz; // original array size, used for referencing different sized arrays
     int precision = 0; // precision of calculation, used to give correct number of sig digs
+    int remainder = 0;
 
     char *quo = malloc(sz*sizeof(char));
     char *temp_quo = malloc (sz*sizeof(char)); // temporary quotient variable
@@ -196,11 +197,17 @@ bignum l_div(bignum a, bignum b){
             else
                 break;
         }
+        remainder = dvd_sz;
         i++;
     }
+    if (remainder == 0){
+        precision = quo_sz;
+    } else {
+        precision = quo_sz-1;
+    }
     res.exp = exp;
-    res.value = malloc((quo_sz+1)*sizeof(char));
-    for (int i = 0; i < quo_sz; i++){
+    res.value = malloc((precision+1)*sizeof(char));
+    for (int i = 0; i < precision; i++){
         res.value[i] = quo[i + sz-quo_sz] + '0';
     }
     res.value[quo_sz] = 0;
