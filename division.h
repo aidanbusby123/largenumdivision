@@ -4,6 +4,7 @@
 #define MAX_PRECISION 10
 #define MAX_REPS 1000
 
-char *l_div(char* a, char* b);
+struct bignum l_div(struct bignum a, struct bignum b);
+
 
 #endif

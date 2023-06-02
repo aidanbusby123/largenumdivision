@@ -2,6 +2,7 @@
 #include <string.h>
 #include<stdlib.h>
 #include "division.h"
+#include"bignum.h"
 
 int cmp(char *a, char *b, int sz){ // compare the value of character array
     int a_sz = sz;
@@ -47,9 +48,9 @@ int resize(char **s, int sz){
     }
 }
 
-char* l_div(char* a, char *b){
-    int a_sz = strlen(a); // numerator size
-    int b_sz = strlen(b); // denominator size
+bignum l_div(bignum a, bignum b){
+    int a_sz = strlen(a.value); // numerator size
+    int b_sz = strlen(b.value); // denominator size
     int dvd_sz = a_sz;
     int dvs_sz = b_sz;
     int tmp_sz[2] = {1, 1};
@@ -70,7 +71,7 @@ char* l_div(char* a, char *b){
     char *dvs = malloc(sz*sizeof(char)); // temporary divisor array
     char *temp[2] = {malloc(sz*sizeof(char)), malloc(sz*sizeof(char))}; // temporary array, used for various things
 
-    char *res; // result array, store result in proper format
+    struct bignum res; // bignum struct for result
 
     int exp = 0; // store quotient magnitude
     int shift = 0; //temporary version of exp, find out how far left dividend has been shifted
@@ -80,11 +81,11 @@ char* l_div(char* a, char *b){
         dividend[i] = divisor[i] = dvd[i] = dvs[i] = temp[0][i] = temp[1][i] = quo[i] = 0;
     }
     for (i = 0; i < a_sz; i++){ // store a in dvd (reversed)
-        dividend[i+(sz-a_sz)] = dvd[i+(sz-a_sz)] = a[i] - '0';
+        dividend[i+(sz-a_sz)] = dvd[i+(sz-a_sz)] = a.value[i] - '0';
     }
 
     for (i = 0; i < b_sz; i++){ // store b in dvs (reversed)
-        divisor[i+(sz-b_sz)] = dvs[i+(sz-b_sz)] = b[i] - '0';
+        divisor[i+(sz-b_sz)] = dvs[i+(sz-b_sz)] = b.value[i] - '0';
     }
 
     
@@ -197,10 +198,12 @@ char* l_div(char* a, char *b){
         }
         i++;
     }
-    res = malloc(quo_sz*sizeof(char));
+    res.exp = exp;
+    res.value = malloc((quo_sz+1)*sizeof(char));
     for (int i = 0; i < quo_sz; i++){
-        res[i] = quo[i + sz-quo_sz] + '0';
+        res.value[i] = quo[i + sz-quo_sz] + '0';
     }
+    res.value[quo_sz] = 0;
 
     return res;
 }
