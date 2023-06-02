@@ -3,9 +3,9 @@
 
 #include "division.h"
 
-struct bignum {
+typedef struct bignum {
     char *value;
     int exp;
-};
+}bignum;
 
 #endif
