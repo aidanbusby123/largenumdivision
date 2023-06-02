@@ -25,3 +25,5 @@ After correctly formatting all values, simply pass them to the `l_div` function
 result = l_div(a, b);
 ```
 `l_div` returns a `bignum` data type as well, for ease of use and compatability.
+
+Note: the `exp` value in `bignum` gives the power of ten that the result number must be multiplied by in order to get a correct value. There are also placeholder zeroes, which are necessary for proper calculations.
