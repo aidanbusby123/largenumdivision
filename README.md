@@ -1,4 +1,4 @@
-# largenumdivision
+# largenumdivision (beta)
 largenumberdivision is a small C library designed to divide arbitrarily large numbers. It does this by storing values as character arrays, stored in the predefined `bignum` struct, and passing them to the `l_div` function.
 ## Use
 This library (if you can even call it that) is quite easy to use. Simply include the required header file, and you are good to go.
