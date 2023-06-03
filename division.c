@@ -92,12 +92,54 @@ bignum l_div(bignum a, bignum b){
     
     i = 0;
 
-    while (dvd_sz != 0 && i < MAX_REPS){ // main algorithm
+    while (dvd_sz != 0 && quo_sz < MAX_PRECISION){ // main algorithm
         for (int k = sz-1; k >= sz-orig_sz; k--){ // reset dvs (temporary divisor)
             temp[0][k] = dvs[k] = divisor[orig_sz-(sz-k)];
         }
+        for (int k = 0; k < sz; k++){
+            temp_quo[k] = temp[1][k] = 0;
+        }
         temp_quo[sz-1] = temp[1][sz-1] = 1;
+        tmp_sz[0] = dvs_sz = b_sz;
+        tmp_sz[1] = 1;
         // Left shift dividend until greater than divisor, if neccessary
+        if (dvs_sz > dvd_sz){ 
+
+            if (sz-dvs_sz <= 1 || sz-(quo_sz+dvs_sz-dvd_sz) <= 1){ // out of space in array
+                sz *= 2;
+                dvd = &(dvd[0]);
+                dvs = &(dvs[0]);
+                temp[0] = &(temp[0][0]);
+                temp[1] = &(temp[1][0]);
+                quo = &(quo[0]);
+                temp_quo = &(temp_quo[0]);
+                resize(&dvd, sz);
+                resize(&dvs, sz);
+                resize(&(temp[0]), sz);
+                resize(&(temp[1]), sz);
+                resize(&quo, sz);
+                resize(&temp_quo, sz);
+ 
+            }
+            for (int k = sz-dvs_sz-1; k < sz-(dvs_sz-dvd_sz); k++){
+                dvd[k] = dvd[k + (dvs_sz-dvd_sz)];
+            }
+            for (int k = sz-(dvs_sz-dvd_sz); k < sz; k++){
+                dvd[k] = 0;
+            }
+            for (int k = sz-dvs_sz+dvd_sz-quo_sz; k < sz-(dvs_sz-dvd_sz); k++){
+                quo[k] = quo[k + (dvs_sz-dvd_sz)];
+            }
+
+            for (int k = sz-(dvs_sz-dvd_sz); k < sz; k++){
+                quo[k] = 0;
+            }        
+            exp -= dvs_sz-dvd_sz;
+            quo_sz += dvs_sz-dvd_sz;
+            dvd_sz = dvs_sz;
+            
+            
+        }
         while (cmp(dvd, dvs, sz) == -1){ // decimal left shift dividend by 1, (multiply by ten)
             for (int k = sz-dvd_sz-1; k < sz-1; k++){
                 dvd[k] = dvd[k+1];
@@ -105,6 +147,7 @@ bignum l_div(bignum a, bignum b){
             for (int k = sz-quo_sz-1; k < sz-1; k++){
                 quo[k] = quo[k+1];
             }
+            
             dvd[sz-1] = 0;
             quo[sz-1] = 0;
             exp--;
@@ -113,21 +156,70 @@ bignum l_div(bignum a, bignum b){
             quo_sz++;
             if (sz-dvd_sz <= 1 || sz-quo_sz <= 1){ // out of space in array
                 sz *= 2;
+                dvd = &(dvd[0]);
+                dvs = &(dvs[0]);
+                temp[0] = &(temp[0][0]);
+                temp[1] = &(temp[1][0]);
+                quo = &(quo[0]);
+                temp_quo = &(temp_quo[0]);
+                resize(&dvd, sz);
+                resize(&dvs, sz);
+                resize(&(temp[0]), sz);
+                resize(&(temp[1]), sz);
+                resize(&quo, sz);
+                resize(&temp_quo, sz);
+
+            }                     
+        }
+
+        // Multiply divisor by 2 until greater than dividend, get previous value
+
+
+        while (tmp_sz[0] < dvd_sz){
+
+            for (int k = 0; k < sz; k++){
+                dvs[k] = temp[0][k];
+                temp_quo[k] = temp[1][k];
+            }
+            dvs_sz = tmp_sz[0];
+            tmp_quo_sz = tmp_sz[1];
+            for (int k = sz-1; k >= (sz-tmp_sz[0]); k--){
+                temp[0][k] *= 2;
+
+            }
+            for (int k = sz-1; k >= (sz-tmp_sz[0]); k--){
+                if (k == (sz-tmp_sz[0]) && (temp[0][k] >= 10)){
+                    tmp_sz[0]++;
+                }
+                temp[0][k-1] += temp[0][k] / 10;
+                temp[0][k] %= 10;            
+            }
+            for (int k = sz-1; k >= (sz-tmp_sz[1]); k--){
+                temp[1][k] *= 2;
+            }
+            for (int k = sz-1; k >= (sz-tmp_sz[1]); k--){
+                if (k == (sz-tmp_sz[1]) && (temp[1][k] >= 10)){
+                    tmp_sz[1]++;
+                }
+                temp[1][k-1] += temp[1][k] / 10;
+                temp[1][k] %= 10;
+            }
+            if ((sz-tmp_sz[0] <= 1) || (sz-tmp_sz[1] <= 1)){
+                sz *= 2;
+                dvd = &(dvd[0]);
+                dvs = &(dvs[0]);
+                temp[0] = &(temp[0][0]);
+                temp[1] = &(temp[1][0]);
+                quo = &(quo[0]);
+                temp_quo = &(temp_quo[0]);
                 resize(&dvd, sz);
                 resize(&dvs, sz);
                 resize(&temp[0], sz);
                 resize(&temp[1], sz);
                 resize(&quo, sz);
                 resize(&temp_quo, sz);
- 
             }
         }
-
-        // Multiply divisor by 2 until greater than dividend, get previous value
-
-        tmp_sz[0] = dvd_sz;
-        tmp_sz[1] = 1;
-
         while (cmp(dvd, temp[0], sz) == 1){
             for (int k = 0; k < sz; k++){
                 dvs[k] = temp[0][k];
@@ -158,7 +250,12 @@ bignum l_div(bignum a, bignum b){
             }
             if ((sz-tmp_sz[0] <= 1) || (sz-tmp_sz[1] <= 1)){
                 sz *= 2;
-                dvd = dvs = temp[0] = temp[1] = quo = temp_quo = 0;
+                dvd = &(dvd[0]);
+                dvs = &(dvs[0]);
+                temp[0] = &(temp[0][0]);
+                temp[1] = &(temp[1][0]);
+                quo = &(quo[0]);
+                temp_quo = &(temp_quo[0]);
                 resize(&dvd, sz);
                 resize(&dvs, sz);
                 resize(&temp[0], sz);
@@ -166,21 +263,17 @@ bignum l_div(bignum a, bignum b){
                 resize(&quo, sz);
                 resize(&temp_quo, sz);
             }
+
         }
-        for (int k = sz-1; k >= sz-tmp_sz[1]; k--){
+        for (int k = sz-1; k >= sz-tmp_quo_sz; k--){
             quo[k] += temp_quo[k];
         }
-        for (int k = sz-1; k >= 0; k--){
+        for (int k = sz-1; k > 0; k--){
             quo[k-1] += quo[k] / 10;
-            if ((k == quo_sz) && (quo[k] >= 10))
+            if ((k == sz-quo_sz) && (quo[k] >= 10))
                 quo_sz++;
             quo[k] %= 10;
         }
-        
-        for (int k = 0; k < sz; k++){
-            temp[0][k] = temp[1][k] = temp_quo[k] = 0;
-        }
-        
 
         // Subtract divisor from dividend
         for (int k = sz-1; k >= 0; k--){
